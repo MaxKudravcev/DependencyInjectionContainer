@@ -2,7 +2,8 @@
 
 namespace DependencyInjectionContainer
 {
-    public class Class1
+    public class DIContainer
     {
+
     }
 }
