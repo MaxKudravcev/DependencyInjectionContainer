@@ -3,14 +3,18 @@ using System.Collections.Generic;
 
 namespace DependencyInjectionContainer
 {
-    class DependenciesConfig
+    public class DependenciesConfig
     {
         internal Dictionary<Type, List<Implementation>> dependencies = new Dictionary<Type, List<Implementation>>();
 
-        public bool Register<TDependency, TImplementation>(LifeCycle lifeCycle)
+        public bool Register<TDependency, TImplementation>(LifeCycle lifeCycle = LifeCycle.InstancePerDependency)
             where TImplementation : TDependency
+            where TDependency : class
         {
-            if(typeof(TImplementation).GetConstructors().Length != 0)
+            if (typeof(TImplementation).IsAbstract)
+                throw new Exception("TImplementation can not be abstract.");
+
+            if (typeof(TImplementation).GetConstructors().Length != 0)
             {
                 if (dependencies.ContainsKey(typeof(TDependency)))
                     dependencies.Add(
@@ -23,7 +27,7 @@ namespace DependencyInjectionContainer
                 return true;
             }
 
-            return false;
+            throw new Exception("TImplementation should have at least one public constructor.");
         }
     }
 }

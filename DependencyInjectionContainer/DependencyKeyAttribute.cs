@@ -5,6 +5,6 @@ namespace DependencyInjectionContainer
     public class DependencyKeyAttribute : Attribute
     {
         public Enum Name { get; }
-        public DependencyKeyAttribute(Enum name) => Name = name;
+        public DependencyKeyAttribute(object name) => Name = (Enum)name;
     }
 }

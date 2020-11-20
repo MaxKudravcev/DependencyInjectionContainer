@@ -99,5 +99,10 @@ namespace DependencyInjectionContainer
                 return res;
             }
         }
+
+        public DIContainer(DependenciesConfig config)
+        {
+            dependencies = config.dependencies;
+        }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace DependencyInjectionContainer
 {
-    enum LifeCycle
+    public enum LifeCycle
     {
         InstancePerDependency,
         Singleton
