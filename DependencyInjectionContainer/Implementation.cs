@@ -16,6 +16,7 @@ namespace DependencyInjectionContainer
         public Implementation(Type implementation, LifeCycle lifeCycle)
         {
             TImplementation = implementation;
+            LifeCycle = lifeCycle;
         }
     }
 }

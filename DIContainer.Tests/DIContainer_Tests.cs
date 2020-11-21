@@ -1,8 +1,8 @@
 using NUnit.Framework;
-using DependencyInjectionContainer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DependencyInjectionContainer.Tests
 {
@@ -63,7 +63,7 @@ namespace DependencyInjectionContainer.Tests
 
         public class SingletonDependency : ISingleton
         {
-            public int a => 42;
+            public int a = 42;
         }
 
         #endregion
@@ -268,9 +268,9 @@ namespace DependencyInjectionContainer.Tests
 
             public override bool Equals(object obj)
             {
-                if (obj is ICollectionDependency c)
+                if (obj is AnotherSimpleClass c)
                 {
-                    return c.Equals(dependency);
+                    return c.dependency.Equals(dependency);
                 }
                 return false;
             }
@@ -299,16 +299,86 @@ namespace DependencyInjectionContainer.Tests
             config.Register<IConstrained, ConstrainedClass>();
             config.Register<IGenericConstrained<IConstrained>, GenericConstrainedClass<IConstrained>>();
             config.Register<IOpenConstrained, OpenConstrainedClass>();
-            //config.Register(typeof(IOpenGeneric<>), typeof(OpenGenericConstrainedClass<>));
+            config.Register(typeof(IOpenGeneric<>), typeof(OpenGenericConstrainedClass<>));
             config.Register<ISimpleDependency, AnotherSimpleClass>();
 
             container = new DIContainer(config);
         }
 
         [Test]
-        public void Test1()
+        public void SimpleDependencyTest()
         {
-            Assert.Pass();
+            var actual = container.Resolve<ISimpleDependency>();
+            var expected = new SimpleDependency();
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void SimpleInnerDependencyTest()
+        {
+            var actual = container.Resolve<ISimpleDependency>(Names.Second);
+            var expected = new SimpleWithInnerDependency(new SimpleDependency());
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void SingletonTest()
+        {
+            var expected = Task.Run(() => container.Resolve<ISingleton>());
+            var actual1 = Task.Run(() => container.Resolve<ISingleton>());
+            var actual2 = Task.Run(() => container.Resolve<ISingleton>());
+            var actual3 = Task.Run(() => container.Resolve<ISingleton>());
+
+            Assert.AreEqual(expected.Result, actual1.Result);
+            Assert.AreEqual(expected.Result, actual2.Result);
+            Assert.AreEqual(expected.Result, actual3.Result);
+        }
+
+        [Test]
+        public void CollectionTest()
+        {
+            var actual = container.Resolve<IEnumerable<ICollectionDependency>>();
+            var expected = new ICollectionDependency[] { new CollectionClass1(), new CollectionClass2(), new CollectionClass3() };
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void InnerCollectionTest()
+        {
+            var actual = container.Resolve<IInnerCollection>();
+            var expected = new InnerCollectionClass(new ICollectionDependency[] { new CollectionClass1(), new CollectionClass2(), new CollectionClass3() });
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void ConstrainedGenericTest()
+        {
+            var actual = container.Resolve<IGenericConstrained<IConstrained>>();
+            var expected = new GenericConstrainedClass<IConstrained>(new ConstrainedClass());
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void OpenGenericTest()
+        {
+            var actual = container.Resolve<IOpenGeneric<IOpenConstrained>>();
+            var expected = new OpenGenericConstrainedClass<IOpenConstrained>(new OpenConstrainedClass());
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void NamedDependencyTest()
+        {
+            var actual = container.Resolve<ISimpleDependency>(Names.Third);
+            var expected = new AnotherSimpleClass(new CollectionClass2());
+
+            Assert.AreEqual(expected, actual);
         }
     }
 }

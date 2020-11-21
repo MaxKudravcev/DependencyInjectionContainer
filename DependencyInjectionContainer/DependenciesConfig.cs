@@ -7,27 +7,33 @@ namespace DependencyInjectionContainer
     {
         internal Dictionary<Type, List<Implementation>> dependencies = new Dictionary<Type, List<Implementation>>();
 
-        public bool Register<TDependency, TImplementation>(LifeCycle lifeCycle = LifeCycle.InstancePerDependency)
-            where TImplementation : TDependency
-            where TDependency : class
+        public bool Register(Type tDependency, Type tImplementation, LifeCycle lifeCycle = LifeCycle.InstancePerDependency)
+            
         {
-            if (typeof(TImplementation).IsAbstract)
+            if (tImplementation.IsAbstract)
                 throw new Exception("TImplementation can not be abstract.");
 
-            if (typeof(TImplementation).GetConstructors().Length != 0)
+            if (tImplementation.GetConstructors().Length != 0)
             {
-                if (dependencies.ContainsKey(typeof(TDependency)))
+                if (!dependencies.ContainsKey(tDependency))
                     dependencies.Add(
-                        typeof(TDependency),
-                        new List<Implementation> { new Implementation(typeof(TImplementation), lifeCycle) });
+                        tDependency,
+                        new List<Implementation> { new Implementation(tImplementation, lifeCycle) });
                 else
-                    dependencies[typeof(TDependency)].Add(
-                        new Implementation(typeof(TImplementation), lifeCycle));
+                    dependencies[tDependency].Add(
+                        new Implementation(tImplementation, lifeCycle));
 
                 return true;
             }
 
             throw new Exception("TImplementation should have at least one public constructor.");
+        }
+
+        public bool Register<TDependency, TImplementation>(LifeCycle lifeCycle = LifeCycle.InstancePerDependency) 
+            where TImplementation : TDependency
+            where TDependency : class
+        {
+            return Register(typeof(TDependency), typeof(TImplementation), lifeCycle);
         }
     }
 }

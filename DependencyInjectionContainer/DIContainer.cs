@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Collections;
 
 namespace DependencyInjectionContainer
 {
@@ -19,7 +20,7 @@ namespace DependencyInjectionContainer
         private object Resolve(Type tDependency, int namedDependency = 0)
         {
             //create list if IEnumerable
-            if (tDependency.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
+            if (typeof(IEnumerable).IsAssignableFrom(tDependency))
             {
                 tDependency = tDependency.GetGenericArguments().First();
                 if (!dependencies.ContainsKey(tDependency))
@@ -94,7 +95,7 @@ namespace DependencyInjectionContainer
                 object res = Activator.CreateInstance(imp.TImplementation, invokeArgs);
 
                 if (imp.LifeCycle == LifeCycle.Singleton)
-                    singletons.TryAdd(imp.TImplementation, res);
+                    return singletons.TryAdd(imp.TImplementation, res) ? res : singletons[imp.TImplementation];
 
                 return res;
             }
